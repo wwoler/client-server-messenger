@@ -428,7 +428,6 @@ auto Chat::clear_chat()  ->void
         {
             case'y':
             case'Y':
-                //_DB->clearChat(_currentUser->getUsername(), username);
                 done = true;
                 write(_socket, &done, sizeof(bool));
                 break;
