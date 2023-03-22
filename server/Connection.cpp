@@ -1,7 +1,7 @@
 #include "Connection.h"
 
 Connection::Connection(Client* client, DataBase* db):
-    _client(std::make_unique<Client>(client)),
+    _client(client),
     _dataBase(db),
     _status(Client::CONNECTION_STATUS::NON) {}
 
