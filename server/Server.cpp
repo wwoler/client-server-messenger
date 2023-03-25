@@ -64,7 +64,7 @@ void TcpServer::createConnection()
         std::cout << "Connection Closed\a\n";
         return;
     }
-    std::cout << "Client connected\n";
+    std::cout << "Client connected ";
 
     auto* newConnection =
         new Connection(new Client(connection, client), _data_base);
@@ -72,9 +72,7 @@ void TcpServer::createConnection()
     _connections.emplace_back(newConnection);
 
     newConnection->start();
-
 }
-
 
 void TcpServer::connectionHandlerFunc()
 {
@@ -93,8 +91,7 @@ void TcpServer::connectionHandlerFunc()
             ++i;
         }
     }
-}    
-
+}
 
 void TcpServer::stop()
 {

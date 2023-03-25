@@ -1,13 +1,12 @@
 #include "Message.h"
 
-
-Message::Message(std::wstring const& sender, std::wstring const& receiver, std::wstring const& content, time_t&& time):
+Message::Message(std::wstring const& sender, std::wstring const& receiver, std::wstring const& content, time_t time):
 	_sender(sender),
     _receiver(receiver),
     _content(content),
     _time(time) {}
 
-Message::Message(std::wstring const& sender, std::wstring const& content, time_t&& time):
+Message::Message(std::wstring const& sender, std::wstring const& content, time_t time):
 	_sender(sender),
     _content(content),
     _time(time),

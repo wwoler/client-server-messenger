@@ -16,8 +16,6 @@ private:
     DataBase*                    _dataBase;
     Client::CONNECTION_STATUS    _status;
 
-
-    auto requestHandlerFunc()                                                         ->void;
     auto setClientPos(std::streampos&)                                                ->void;
 
     auto loadSignedNUM()                                                        const ->long;
@@ -35,6 +33,18 @@ private:
     auto sendString(wchar_t const*, size_t const)                               const ->void;
     auto sendResponse(Client::RESPONSE_TYPE const&, int const)                  const ->void;
     auto sendMessages(std::vector<Message> const&)                              const ->void;
+
+    auto handlerExitRequest()                                                         ->void;
+    auto handlerSignUpRequest()                                                       ->void;
+    auto handlerSignInRequest()                                                       ->void;
+    auto handlerGetMessagesRequest()                                                  ->void;
+    auto handlerSendMessageRequest()                                                  ->void;
+    auto handlerChPasswordRequest()                                                   ->void;
+    auto handlerChLoginRequest()                                                      ->void;
+    auto handlerClearChatRequest()                                                    ->void;
+    auto requestHandlerFunc()                                                         ->void;
+
+    auto showIp()                                                               const ->void;
 
 public:
     auto start()                                                                      ->void;

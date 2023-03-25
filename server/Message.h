@@ -5,8 +5,8 @@
 class Message final {
 public:
 	Message() = default;
-	Message(std::wstring const& sender, std::wstring const& receiver, std::wstring const& content, time_t&& time);
-	Message(std::wstring const& sender, std::wstring const& content, time_t&& time);
+	Message(std::wstring const& sender, std::wstring const& receiver, std::wstring const& content, time_t time);
+	Message(std::wstring const& sender, std::wstring const& content, time_t time);
 	~Message() = default;
 
 	auto getSender()    const	->std::wstring const&;

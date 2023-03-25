@@ -44,7 +44,6 @@ public:
 public:
     Client() = default;
     Client(int socket, sockaddr_in const& addr);
-    explicit Client(Client* client);
     ~Client();
 
 private:
@@ -70,5 +69,6 @@ public:
 
     auto getPos()                                       const ->std::streampos const&;
     auto setPos(std::streampos const&)                        ->void;
+    auto showIp()                                       const ->void;
 
 };
