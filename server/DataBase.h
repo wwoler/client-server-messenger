@@ -34,17 +34,18 @@ private:
 
 	auto isExisting(User& userID)                                            ->bool;
 
-	auto clearChat(std::wstring const& user1, std::wstring const& user2)     ->void;
+	auto clearChat(std::string const& user1, std::string const& user2)       ->bool;
 
-	auto getMessages(std::wstring const& from, std::wstring const& to)       ->std::vector<Message>;
+	auto getMessages(std::string const& from, std::string const& to,
+                     std::vector<Message>& messages)                         ->bool;
 
-	auto sendMessage(Message& message)                                       ->void;
+	auto sendMessage(Message& message)                                       ->bool;
 
 	auto adjustment()                                                        ->void;
 
     auto getUserStreamPos()                                                  ->std::streampos&;
 
-    auto changeUserData(User& newData, std::streampos const& pos)            ->void;
+    auto changeUserData(User& newData, std::streampos const& pos)            ->bool;
 
     auto lock()                                                              ->void;
 
@@ -52,7 +53,7 @@ private:
 
 
 protected:
-	explicit DataBase(std::filesystem::path const&& path = L"./base/");
+	explicit DataBase(std::filesystem::path const&& path = "./base/");
 
 public:
 	~DataBase() override

@@ -55,14 +55,14 @@ public:
     auto loadRequest()                                  const ->REQUEST_TYPE;
     auto loadUserData()                                 const ->User;
     auto loadMessage()                                  const ->Message;
-    auto loadString()                                   const ->wchar_t*;
+    auto loadString()                                   const ->char*;
     auto loadUnsignedNUM()                              const ->size_t;
     auto loadSignedNUM()                                const ->long;
 
 
     auto sendUnsignedNUM(size_t const)                  const ->void;
     auto sendSignedNUM(long const)                      const ->void;
-    auto sendString(wchar_t const*, size_t)             const ->void;
+    auto sendString(char const*, size_t)                const ->void;
     auto sendResponse(RESPONSE_TYPE const, int const)   const ->void;
     auto sendMessages(std::vector<Message> const&)      const ->void;
     auto disconnect()                                   const ->void;

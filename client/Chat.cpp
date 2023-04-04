@@ -23,21 +23,21 @@ Chat::~Chat()
 auto Chat::flush_input_buffer()  ->void
 {
     auto max_ = std::numeric_limits<std::streamsize>::max;
-    std::wcin.ignore(max_(), '\n');
+    std::cin.ignore(max_(), '\n');
 }
 
-auto Chat::set_user_data(std::wstring& data, std::wregex const& reg)  ->bool
+auto Chat::set_user_data(std::string& data, std::regex const& reg)  ->bool
 {
-    std::getline(std::wcin, data);
+    std::getline(std::cin, data);
     while (!std::regex_match(data, reg))
     {
         setConsoleColor(Color::RED);
-        std::wcout << L"Incorrect input, try again(quit to quit)\n> ";
+        std::cout << "Incorrect input, try again(quit to quit)\n> ";
         setConsoleColor(Color::DEFAULT);
-        std::getline(std::wcin, data);
+        std::getline(std::cin, data);
     }
 
-    if(data == L"quit" || data ==L"common_chat")
+    if(data == "quit" || data == "common_chat")
         return false;
 
     return true;
@@ -51,43 +51,43 @@ auto Chat::set_current_user(std::unique_ptr<User> user)  ->void
 }
 
 
-auto Chat::time_to_string(time_t& time)  ->std::wstring
+auto Chat::time_to_string(time_t time)  ->std::string
 {
     std::tm time_point;
 
     localtime(&time_point, &time);
 
-    std::wstring year = std::to_wstring(time_point.tm_year + 1900u);
+    std::string year = std::to_string(time_point.tm_year + 1900u);
 
-    std::wstring month;
+    std::string month;
     if (time_point.tm_mon + 1u < 10u)
     {
-        month.append(L"0");
+        month.append("0");
     }
-    month.append(std::to_wstring(time_point.tm_mon + 1u));
+    month.append(std::to_string(time_point.tm_mon + 1u));
 
-    std::wstring day;
+    std::string day;
     if (time_point.tm_mday < 10u)
     {
-        day.append(L"0");
+        day.append("0");
     }
-    day.append(std::to_wstring(time_point.tm_mday));
+    day.append(std::to_string(time_point.tm_mday));
 
-    std::wstring hour;
+    std::string hour;
     if (time_point.tm_hour < 10u)
     {
-        hour.append(L"0");
+        hour.append("0");
     }
-    hour.append(std::to_wstring(time_point.tm_hour));
+    hour.append(std::to_string(time_point.tm_hour));
 
-    std::wstring min;
+    std::string min;
     if (time_point.tm_min < 10u)
     {
-        min.append(L"0");
+        min.append("0");
     }
-    min.append(std::to_wstring(time_point.tm_min));
+    min.append(std::to_string(time_point.tm_min));
 
-    return { day + L"-" + month + L"-" + year + L" " + hour + L":" + min };
+    return { day + "-" + month + "-" + year + " " + hour + ":" + min };
 }
 
 void Chat::sendUnsignedNUM(size_t const num) const
@@ -105,7 +105,7 @@ auto Chat::sendRequest(REQUEST_TYPE const rt) const ->void
     send(_socket, &rt, sizeof(rt), 0);
 }
 
-auto Chat::sendString(std::wstring const& str) const ->void
+auto Chat::sendString(std::string const& str) const ->void
 {
 
     size_t strLen = str.size();
@@ -114,7 +114,7 @@ auto Chat::sendString(std::wstring const& str) const ->void
 
     send(_socket, &strLen, sizeof(strLen), 0);
 
-    send(_socket, str.c_str(), strLen * sizeof(wchar_t), 0);
+    send(_socket, str.c_str(), strLen, 0);
 }
 
 auto Chat::sendUserData(User& user) const ->void
@@ -157,16 +157,16 @@ auto Chat::loadSignedNUM() const ->long
 }
 
 
-auto Chat::loadString() const ->std::wstring
+auto Chat::loadString() const ->std::string
 {
     size_t strLen;
     if(recv(_socket, &strLen, sizeof(strLen), 0) == 0)
         throw std::runtime_error("Server is DOWN now\n");
-    auto* str = new wchar_t[strLen + 1]{};
+    auto* str = new char[strLen + 1]{};
     str[strLen] = '\0';
-    if(recv(_socket, str, strLen * sizeof(wchar_t), 0) == 0)
+    if(recv(_socket, str, strLen, 0) == 0)
         throw std::runtime_error("Server is DOWN now\n");
-    std::wstring rez(str);
+    std::string rez(str);
     delete[] str;
     return rez;
 }
@@ -189,14 +189,14 @@ auto Chat::login()  ->void
     flush_input_buffer();
 
     std::unique_ptr<User> user = std::make_unique<User>();
-    std::wstring  login, password;
+    std::string login, password;
 
-    std::wcout << L"Enter login\n> ";
-    std::getline(std::wcin, login);
+    std::cout << "Enter login\n> ";
+    std::getline(std::cin, login);
     user->setLogin(login);
 
-    std::wcout << L"Enter password\n> ";
-    std::getline(std::wcin, password);
+    std::cout << "Enter password\n> ";
+    std::getline(std::cin, password);
     user->setPass(password);
 
     cls
@@ -206,14 +206,14 @@ auto Chat::login()  ->void
     {
         user->setUsername(loadString());
         setConsoleColor(Color::GREEN);
-        std::wcout << L"Login success\n\n";
+        std::cout << "Login success\n\n";
         set_current_user(std::move(user));
         setConsoleColor(Color::BLUE);
         userLoop();
         return;
     }
     setConsoleColor(Color::RED);
-    std::wcout << L"Incorrect login or password\n\n";
+    std::cout << "Incorrect login or password\n\n";
 
 }
 
@@ -223,32 +223,32 @@ auto Chat::signUp()  ->void
     sendRequest(request);
     flush_input_buffer();
 
-    std::wregex regular(L"([A-Za-z0-9_]{4,15})");
-    std::wstring login, password, username;
+    std::regex regular("([A-Za-z0-9_]{4,15})");
+    std::string login, password, username;
 
-    std::wcout << L"Enter login | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
+    std::cout << "Enter login | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
     if (!set_user_data(login, regular))
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Registration has been denied\n\n";
+        std::cout << "Registration has been denied\n\n";
         return;
     }
-    std::wcout << L"Enter password | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
+    std::cout << "Enter password | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
     if (!set_user_data(password, regular))
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Registration has been denied\n\n";
+        std::cout << "Registration has been denied\n\n";
         return;
     }
 
-    std::wcout << L"Enter username | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
+    std::cout << "Enter username | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
     if (!set_user_data(username, regular))
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Registration has been denied\n\n";
+        std::cout << "Registration has been denied\n\n";
         return;
     }
 
@@ -258,12 +258,12 @@ auto Chat::signUp()  ->void
     if (loadResponse() == RESPONSE_TYPE::REJECTED)
     {
         setConsoleColor(Color::RED);
-        std::wcout << L"Account with this name/login has already been registered\n\n";
+        std::cout << "Account with this name/login has already been registered\n\n";
         return;
     }
 
     setConsoleColor(Color::GREEN);
-    std::wcout << L"Registration was successful\n\n";
+    std::cout << "Registration was successful\n\n";
 }
 
 auto Chat::getMessages()  ->void
@@ -272,9 +272,9 @@ auto Chat::getMessages()  ->void
     sendRequest(request);
     flush_input_buffer();
 
-    std::wstring chat_with;
-    std::wcout << L"Enter username/chatname to get messages:\n> ";
-    std::getline(std::wcin, chat_with);
+    std::string chat_with;
+    std::cout << "Enter username/chatname to get messages:\n> ";
+    std::getline(std::cin, chat_with);
 
     sendString(_currentUser->getUsername());
     sendString(chat_with);
@@ -283,7 +283,7 @@ auto Chat::getMessages()  ->void
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"User/chat isn't existing\n\n";
+        std::cout << "User/chat isn't existing\n\n";
         return;
     }
     cls
@@ -292,7 +292,7 @@ auto Chat::getMessages()  ->void
     if (vecSize == 0)
     {
        setConsoleColor(Color::RED);
-       std::wcout << L"You don't have any messages in this chat\n\n";
+       std::cout << "You don't have any messages in this chat\n\n";
        return;
     }
 
@@ -319,12 +319,11 @@ auto Chat::getMessages()  ->void
     for (auto const& message : messages)
     {
         SetConsoleCursor(c);
-        std::wcout << message.getSender()
-                   << L' ' << time_to_string(
-                           const_cast<time_t&>(message.getTime()));
+        std::cout << message.getSender()
+                   << L' ' << time_to_string(message.getTime());
         c.Y += 1;
         SetConsoleCursor(c);
-        std::wcout << message.getContent();
+        std::cout << message.getContent();
         c.Y += 2;
     }
     c.Y += 2;
@@ -341,39 +340,36 @@ auto Chat::sendMessage()  ->void
     flush_input_buffer();
 
 
-    std::wstring receiver, content;
-    std::wcout << L"Enter username/chatname to send message:\n> ";
-    std::getline(std::wcin, receiver);
-    User temp(receiver);
+    std::string receiver, content;
+    std::cout << "Enter username/chatname to send message:\n> ";
+    std::getline(std::cin, receiver);
 
-    sendString(receiver);
-    if (loadResponse() == RESPONSE_TYPE::REJECTED)
-    {
-        cls
-        setConsoleColor(Color::RED);
-        std::wcout << L"User/chat isn't existing\n\n";
-        return;
-    }
+    std::cout << "Write message to " << receiver.c_str()
+              << "{max symbols: " << _consoleWidth - 2 << "}\n> ";
+
+    std::getline(std::cin, content);
     cls
-
-    std::wcout << L"Write message to " << receiver
-               << L"{max symbols: " << _consoleWidth - 2 << L"}\n> ";
-
-    std::getline(std::wcin, content);
-    if (content.size() > (_consoleWidth - 2))
-    {
-        content.erase(content.begin() + (_consoleWidth - 2), content.end());
-    }
 
     std::unique_ptr<Message> message = std::make_unique<Message>
             (_currentUser->getUsername(), receiver, content, time(nullptr));
 
     sendMessage(*message);
+    if (loadResponse() == RESPONSE_TYPE::REJECTED)
+    {
+        setConsoleColor(Color::RED);
+        std::cout << "User/chat isn't existing\n\n";
+        return;
+    }
+
+    if (content.size() > (_consoleWidth - 2))
+    {
+        content.erase(content.begin() + (_consoleWidth - 2), content.end());
+    }
 
     cls
     setConsoleColor(Color::GREEN);
-    std::wcout << "Message sent\n";
-    std::wcout << std::endl;
+    std::cout << "Message sent\n";
+    std::cout << std::endl;
 }
 
 
@@ -397,14 +393,14 @@ auto Chat::clear_chat()  ->void
     sendRequest(request);
     flush_input_buffer();
 
-    std::wstring username;
-    std::wcout << L"Enter username to clear chat with him:\n> ";
-    std::getline(std::wcin, username);
-    if (username == L"common_chat")
+    std::string username;
+    std::cout << "Enter username to clear chat with him:\n> ";
+    std::getline(std::cin, username);
+    if (username == "common_chat")
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"The shared chat cannot be cleared\n\n";
+        std::cout << "The shared chat cannot be cleared\n\n";
         return;
     }
 
@@ -414,16 +410,16 @@ auto Chat::clear_chat()  ->void
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"User/chat isn't existing\n\n";
+        std::cout << "User/chat isn't existing\n\n";
         return;
     }
 
     bool done = false;
-    wchar_t ch;
+    char ch;
     while (!done)
     {
-        std::wcout << L"Are you sure? Y/N\n> ";
-        std::wcin >> ch;
+        std::cout << "Are you sure? Y/N\n> ";
+        std::cin >> ch;
         switch (ch)
         {
             case'y':
@@ -435,7 +431,7 @@ auto Chat::clear_chat()  ->void
             case'N':
                 done = false;
                 write(_socket, &done, sizeof(bool));
-                std::wcout << std::endl;
+                std::cout << std::endl;
                 return;
             default:
                 flush_input_buffer();
@@ -444,8 +440,8 @@ auto Chat::clear_chat()  ->void
     }
     cls
     setConsoleColor(Color::GREEN);
-    std::wcout << L"Chat has been cleared" << std::endl;
-    std::wcout << std::endl;
+    std::cout << "Chat has been cleared" << std::endl;
+    std::cout << std::endl;
 }
 
 
@@ -455,15 +451,15 @@ auto Chat::changePassword()  ->void
     sendRequest(request);
     flush_input_buffer();
 
-    std::wregex regular(L"([A-Za-z0-9_]{4,15})");
-    std::wstring newPassword;
+    std::regex regular("([A-Za-z0-9_]{4,15})");
+    std::string newPassword;
 
-    std::wcout << L"Enter new password | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
+    std::cout << "Enter new password | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
     if (!set_user_data(newPassword, regular))
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Changing login has been denied\n\n";
+        std::cout << "Changing login has been denied\n\n";
         return;
     }
 
@@ -474,8 +470,8 @@ auto Chat::changePassword()  ->void
     if(loadResponse() == RESPONSE_TYPE::ACCEPTED)
     {
         setConsoleColor(Color::GREEN);
-        std::wcout << L"Password has been changed" << std::endl;
-        std::wcout << std::endl;
+        std::cout << "Password has been changed" << std::endl;
+        std::cout << std::endl;
     }
 }
 
@@ -485,15 +481,15 @@ auto Chat::changeLogin()  ->void
     sendRequest(request);
     flush_input_buffer();
 
-    std::wregex regular(L"([A-Za-z0-9_]{4,15})");
-    std::wstring newLogin;
+    std::regex regular("([A-Za-z0-9_]{4,15})");
+    std::string newLogin;
 
-    std::wcout << L"Enter new login | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
+    std::cout << "Enter new login | min;max length[4;15] | allowed characters[a-z A-Z 0-9 _] | (quit to quit):\n> ";
     if (!set_user_data(newLogin, regular))
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Changing password has been denied\n\n";
+        std::cout << "Changing password has been denied\n\n";
 
         return;
     }
@@ -506,15 +502,15 @@ auto Chat::changeLogin()  ->void
     {
         cls
         setConsoleColor(Color::RED);
-        std::wcout << L"Account with this login has already exited\n\n";
+        std::cout << "Account with this login has already exited\n\n";
         return;
     }
     cls
 
     _currentUser->setLogin(newLogin);
     setConsoleColor(Color::GREEN);
-    std::wcout << L"Login has been changed" << std::endl;
-    std::wcout << std::endl;
+    std::cout << "Login has been changed" << std::endl;
+    std::cout << std::endl;
 }
 
 
@@ -522,38 +518,40 @@ auto Chat::get_info()  ->void
 {
     setConsoleColor(Color::DEFAULT);
 
-    std::wcout << L'┌' << std::setfill(L'─') << std::setw(27u) << L'┐' << std::endl;
+    std::cout << "┌" << std::setfill('-') << std::setw(27u) << "┐" << std::endl;
 
-    std::wcout << L'│' << std::setfill(L' ') << std::right << L"Username: " << _currentUser->getUsername()
-               << std::setw(27u - _currentUser->getUsername().size() - 10u) << L'│' << std::endl;
-    std::wcout << L'│' << std::setfill(L' ') << std::right << std::setw(27u) << L'│' << std::endl;
+    std::cout << "│" << std::setfill(' ') << std::right << "Username: " << _currentUser->getUsername()
+               << std::setw(27u - _currentUser->getUsername().size() - 10u) << "│" << std::endl;
 
-    std::wcout << L'│' << std::setfill(L' ') << std::right << L"Login: " << _currentUser->getLogin()
-               << std::setw(27u - _currentUser->getLogin().size() - 7u) << L'│' << std::endl;
-    std::wcout << L'│' << std::setfill(L' ') << std::right << std::setw(27u) << L'│' << std::endl;
+    std::cout << "│" << std::setfill(' ') << std::right << std::setw(27u) << "│" << std::endl;
 
-    std::wcout << L'│' << std::setfill(L' ') << std::right << L"Password: "<< _currentUser->getPass()
-               << std::setw(27u - _currentUser->getPass().size() - 10u) << L'│' << std::endl;
+    std::cout << "│" << std::setfill(' ') << std::right << "Login: " << _currentUser->getLogin()
+               << std::setw(27u - _currentUser->getLogin().size() - 7u) << "│" << std::endl;
+
+    std::cout << "│" << std::setfill(' ') << std::right << std::setw(27u) << "│" << std::endl;
+
+    std::cout << "│" << std::setfill(' ') << std::right << "Password: "<< _currentUser->getPass()
+               << std::setw(27u - _currentUser->getPass().size() - 10u) << "│" << std::endl;
 
 
-    std::wcout << L'└' << std::setfill(L'─') << std::setw(27u) << L'┘' << std::endl;
-    std::wcout << std::endl;
+    std::cout << "└" << std::setfill('-') << std::setw(27u) << "┘" << std::endl;
+    std::cout << std::endl;
 }
 
-auto Chat::chatBox(std::wstring const& username, size_t const& count) const  -> void
+auto Chat::chatBox(std::string const& username, size_t const& count) const  -> void
 {
 
-    std::wcout << L'┌' << std::setfill(L'─') << std::setw(_consoleWidth - 1u) << L'┐' << std::endl;
-    std::wcout << std::left;
-    std::wcout << L'│' << std::setfill(L' ') << std::setw(_consoleWidth - 2u) << username << L'│' << std::endl;
-    std::wcout << std::right;
-    std::wcout << L'├' << std::setfill(L'─') << std::setw(_consoleWidth - 1u) << L'┤' << std::endl;
-    std::wcout << std::left;
+    std::cout << "┌" << std::setfill('-') << std::setw(_consoleWidth - 1u) << "┐" << std::endl;
+    std::cout << std::left;
+    std::cout << "│" << std::setfill(' ') << std::setw(_consoleWidth - 4u) << username << "│" << std::endl;
+    std::cout << std::right;
+    std::cout << "├" << std::setfill('-') << std::setw(_consoleWidth - 1u) << "┤" << std::endl;
+    std::cout << std::left;
 
     for (size_t i = 0u; i < count; ++i)
-        std::wcout << L'│' << std::setfill(L' ') << std::right << std::setw(_consoleWidth - 1u) << L'│' << std::endl;
+        std::cout << "│" << std::setfill(' ') << std::right << std::setw(_consoleWidth - 1u) << "│" << std::endl;
 
-    std::wcout << L'└' << std::setfill(L'─') << std::setw(_consoleWidth - 1u) << L'┘' << std::endl;
+    std::cout << "└" << std::setfill('-') << std::setw(_consoleWidth - 1u) << "┘" << std::endl;
 }
 
 
@@ -561,62 +559,62 @@ auto Chat::chatBox(std::wstring const& username, size_t const& count) const  -> 
 auto Chat::chatMenu() const  ->void
 {
     setConsoleColor(Color::DEFAULT);
-    std::wstring menu_words[] =
+    std::string menu_words[] =
     {
-            {L"Login"},
-            {L"SignUp"},
-            {L"Exit"}
+            {"Login"},
+            {"SignUp"},
+            {"Exit"}
     };
 
     setConsoleColor(Color::MAGENTA);
 
-    std::wcout << L'┌' << std::setfill(L'─') << std::setw(27u) << L'┐' << std::endl;
+    std::cout << "┌" << std::setfill('-') << std::setw(27u) << "┐" << std::endl;
     for (size_t i = 0u, j = 0; i < 5u; ++i)
     {
         if (i % 2 == 0u)
         {
-            std::wcout << L'│' << std::setfill(L' ') << j + 1 << "." << menu_words[j]
-                       << std::right << std::setw(27u - menu_words[j++].size() - 2u) << L'│' << std::endl;
+            std::cout << "│" << std::setfill(' ') << j + 1 << "." << menu_words[j].c_str()
+                       << std::right << std::setw(27u - menu_words[j++].size() - 2u) << "│" << std::endl;
             continue;
         }
-        std::wcout << L'│' << std::setfill(L' ') << std::right << std::setw(27u) << L'│' << std::endl;
+        std::cout << "│" << std::setfill(' ') << std::right << std::setw(27u) << "│" << std::endl;
     }
 
-    std::wcout << L'└' << std::setfill(L'─') << std::setw(27u) << L'┘' << std::endl;
-    std::wcout << L"> ";
+    std::cout << "└" << std::setfill('-') << std::setw(27u) << "┘" << std::endl;
+    std::cout << "> ";
 
 
 }
 
 auto Chat::userMenu() const  ->void
 {
-    std::wstring menu_words[] =
+    std::string menu_words[] =
     {
-            {L"Send message"},
-            {L"Get messages"},
-            {L"Get info about account"},
-            {L"Clear chat"},
-            {L"Change password"},
-            {L"Change login"},
-            {L"Logout"}
+            {"Send message"},
+            {"Get messages"},
+            {"Get info about account"},
+            {"Clear chat"},
+            {"Change password"},
+            {"Change login"},
+            {"Logout"}
     };
 
     setConsoleColor(Color::GREEN);
 
-    std::wcout << L'┌' << std::setfill(L'─') << std::setw(27u) << L'┐' << std::endl;
+    std::cout << "┌" << std::setfill('-') << std::setw(27u) << "┐" << std::endl;
     for (size_t i = 0u, j = 0; i < 13u; ++i)
     {
         if (i % 2 == 0u)
         {
-            std::wcout << L'│' << std::setfill(L' ') << j + 1u << "." << menu_words[j]
-                       << std::right << std::setw(27u - menu_words[j++].size() - 2u) << L'│' << std::endl;
+            std::cout << "│" << std::setfill(' ') << j + 1u << "." << menu_words[j]
+                       << std::right << std::setw(27u - menu_words[j++].size() - 2u) << "│" << std::endl;
             continue;
         }
-        std::wcout << L'│' << std::setfill(L' ') << std::right << std::setw(27u) << L'│' << std::endl;
+        std::cout << "│" << std::setfill(' ') << std::right << std::setw(27u) << "│" << std::endl;
     }
 
-    std::wcout << L'└' << std::setfill(L'─') << std::setw(27u) << L'┘' << std::endl;
-    std::wcout << L"> ";
+    std::cout << "└" << std::setfill('-') << std::setw(27u) << "┘" << std::endl;
+    std::cout << "> ";
 
 }
 
@@ -627,11 +625,11 @@ auto Chat::action_for_chat()  ->void
             &Chat::exit
     };
     int act;
-    while (!(std::wcin >> act) || act < 1 || act > 3)
+    while (!(std::cin >> act) || act < 1 || act > 3)
     {
         setConsoleColor(Color::RED);
-        std::wcin.clear();
-        std::wcout << L"Bad input, try again\n> ";
+        std::cin.clear();
+        std::cout << "Bad input, try again\n> ";
         flush_input_buffer();
         setConsoleColor(Color::DEFAULT);
     }
@@ -649,11 +647,11 @@ auto Chat::action_for_user()  ->void
             &Chat::logout
     };
     int act;
-    while (!(std::wcin >> act) || act < 1 || act > 7)
+    while (!(std::cin >> act) || act < 1 || act > 7)
     {
         setConsoleColor(Color::RED);
-        std::wcin.clear();
-        std::wcout << L"Bad input, try again\n> ";
+        std::cin.clear();
+        std::cout << "Bad input, try again\n> ";
         flush_input_buffer();
         setConsoleColor(Color::DEFAULT);
     }
@@ -680,7 +678,6 @@ auto Chat::chatLoop()  ->void
     {
         while (true)
         {
-
             chatMenu();
             action_for_chat();
             cls
@@ -690,7 +687,7 @@ auto Chat::chatLoop()  ->void
     catch (CloseChat const&)
     {
         cls;
-        std::wcerr << L"Chat closing.....\n\n";
+        std::cerr << "Chat closing.....\n\n";
     }
 
 }

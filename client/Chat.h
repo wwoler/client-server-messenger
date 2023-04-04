@@ -49,7 +49,7 @@ private:
 
     auto chatMenu() const                                          ->void;
     auto userMenu() const                                          ->void;
-    auto chatBox(std::wstring const&, size_t const& count) const   ->void;
+    auto chatBox(std::string const&, size_t const&) const    ->void;
 
     auto login()                                                   ->void;
     auto signUp()                                                  ->void;
@@ -68,19 +68,19 @@ private:
     auto changePassword()                                          ->void;
     auto changeLogin()                                             ->void;
 
-    auto set_user_data(std::wstring& data, std::wregex const& reg) ->bool;
+    auto set_user_data(std::string&, std::regex const&)            ->bool;
     auto set_current_user(std::unique_ptr<User> user)              ->void;
 
     auto logout()                                                  ->void;
     auto exit()                                                    ->void;
     auto flush_input_buffer()                                      ->void;
-    auto time_to_string(time_t& time)                              ->std::wstring;
+    auto time_to_string(time_t time)                              ->std::string;
 
 
     auto sendUnsignedNUM(size_t const)     const                   ->void;
     auto sendSignedNUM(long const)         const                   ->void;
-    auto sendRequest(REQUEST_TYPE const)   const                    ->void;
-    auto sendString(std::wstring const&)   const                   ->void;
+    auto sendRequest(REQUEST_TYPE const)   const                   ->void;
+    auto sendString(std::string const&)   const                    ->void;
     auto sendUserData(User&)               const                   ->void;
     auto sendMessage(Message&)             const                   ->void;
 
@@ -88,7 +88,7 @@ private:
     auto loadResponse()                    const                   ->RESPONSE_TYPE;
     auto loadUnsignedNUM()                 const                   ->size_t;
     auto loadSignedNUM()                   const                   ->long;
-    auto loadString()                      const                   ->std::wstring;
+    auto loadString()                      const                   ->std::string;
     auto loadMessage()                     const                   ->Message;
 
 public:

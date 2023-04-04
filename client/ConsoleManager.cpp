@@ -3,12 +3,12 @@
 
 auto ConsoleAttributes::setConsoleColor(Color::Index colorIndex) -> void
 {
-    std::wcout << "\033[" << colorIndex << 'm';
+    std::cout << "\033[" << colorIndex << 'm';
 }
 
 auto ConsoleAttributes::SetConsoleCursor(Coord& coord) -> void
 {
-    std::wcout << "\033[" << coord.Y + 1 << ';' << coord.X + 1 << 'H';
+    std::cout << "\033[" << coord.Y + 1 << ';' << coord.X + 1 << 'H';
 }
 
 auto ConsoleAttributes::currentConsoleWidth() -> unsigned

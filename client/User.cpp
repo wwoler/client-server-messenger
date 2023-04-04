@@ -1,41 +1,40 @@
 #include"User.h"
 
-User::User(std::wstring const& login, std::wstring const& pass):
-    _login(login),
-    _pass(pass) {}
+User::User(std::string const& login, std::string const& pass):
+	_login(login), _pass(pass) {}
 
-User::User(std::wstring const& login,std::wstring const& pass, std::wstring const& username):
+User::User(std::string const& login,std::string const& pass, std::string const& username):
     _login(login),
     _pass(pass),
     _username(username) {}
 
-User::User(std::wstring const& username):
+User::User(std::string const& username):
     _username(username) {}
 
-auto User::getLogin() const	                                    ->std::wstring const&
+auto User::getLogin() const	                                    ->std::string const&
 {
-    return _login;
+	return _login;
 }
 
-auto User::getPass() const	                                    ->std::wstring const&
+auto User::getPass() const	                                    ->std::string const&
 {
-    return _pass;
+	return _pass;
 }
 
-auto User::getUsername() const	                                ->std::wstring const&
+auto User::getUsername() const	                                ->std::string const&
 {
-    return _username;
+	return _username;
 }
 
-auto User::setLogin(std::wstring const& login)              ->void
+auto User::setLogin(std::string const& login)              ->void
 {
-    _login.assign(login);
+	_login.assign(login);
 }
-auto User::setPass(std::wstring const& pass)                ->void
+auto User::setPass(std::string const& pass)                ->void
 {
-    _pass.assign(pass);
+	_pass.assign(pass);
 }
-auto User::setUsername(std::wstring const& username)        ->void
+auto User::setUsername(std::string const& username)        ->void
 {
-    _username.assign(username);
+	_username.assign(username);
 }

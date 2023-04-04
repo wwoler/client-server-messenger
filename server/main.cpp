@@ -1,9 +1,9 @@
-//#include <nlohmann/json.hpp>
 #include <iostream>
 #include "Server.h"
 
 auto main() ->int
 {
+    setlocale(LC_ALL, "");
     auto& db = DataBase::get_instance();
     TcpServer serv(55555, &db);
 

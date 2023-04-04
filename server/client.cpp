@@ -36,14 +36,14 @@ auto Client::loadSignedNUM() const ->long
     return buff;
 }
 
-auto Client::loadString() const ->wchar_t*
+auto Client::loadString() const ->char*
 {
     size_t strLen;
     if(recv(_socket, &strLen, sizeof(strLen), 0) == 0)
         throw std::runtime_error("Client disconnected ");
-    auto* str = new wchar_t[strLen + 1]{};
+    auto* str = new char[strLen + 1]{};
     str[strLen] = '\0';
-    if(recv(_socket, str, strLen * sizeof(wchar_t), 0) == 0)
+    if(recv(_socket, str, strLen, 0) == 0)
         throw std::runtime_error("Client disconnected ");
     return str;
 }
@@ -99,13 +99,13 @@ auto Client::sendResponse(RESPONSE_TYPE const response, int const size) const ->
         throw std::runtime_error("Client disconnected ");
 }
 
-auto Client::sendString(wchar_t const* str, size_t len) const ->void
+auto Client::sendString(char const* str, size_t len) const ->void
 {
     if(len == 0) len += 1;
 
     if(send(_socket, &len, sizeof(len), 0) == 0)
         throw std::runtime_error("Client disconnected ");
-    if(send(_socket, str, len * sizeof(wchar_t), 0) == 0)
+    if(send(_socket, str, len, 0) == 0)
         throw std::runtime_error("Client disconnected ");
 }
 
@@ -147,8 +147,10 @@ auto Client::showIp() const -> void
     bytes[1] = (_address.sin_addr.s_addr >> 8) & 0xFF;
     bytes[2] = (_address.sin_addr.s_addr >> 16) & 0xFF;
     bytes[3] = (_address.sin_addr.s_addr >> 24) & 0xFF;
-    std::wcout << bytes[0] << '.' <<bytes[1]
-        << '.' << bytes[2] <<'.' << bytes[3] << std::endl;
+    std::cout << static_cast<int>(bytes[0]) << '.'
+              << static_cast<int>(bytes[1]) << '.'
+              << static_cast<int>(bytes[2]) << '.'
+              << static_cast<int>(bytes[3]) << std::endl;
 }
 
 

@@ -49,7 +49,7 @@ auto Connection::loadMessage() const ->Message
     return _client->loadMessage();
 }
 
-auto Connection::loadString() const ->wchar_t*
+auto Connection::loadString() const ->char*
 {
     return _client->loadString();
 }
@@ -74,7 +74,7 @@ auto Connection::sendResponse(Client::RESPONSE_TYPE const& response, int const s
     _client->sendResponse(response, size);
 }
 
-auto Connection::sendString(const wchar_t* str, size_t const len) const ->void
+auto Connection::sendString(const char* str, size_t const len) const ->void
 {
     _client->sendString(str, len);
 }
@@ -106,22 +106,20 @@ auto Connection::getConnectionStatus() const ->Client::CONNECTION_STATUS
     return _status;
 }
 
-
 auto Connection::handlerSignUpRequest() -> void
 {
     Client::RESPONSE_TYPE response;
     User user(loadUserData());
 
-    _dataBase->lock();
-    if (_dataBase->signUp(user)) {
+    if (_dataBase->signUp(user))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
         setClientPos(_dataBase->getUserStreamPos());
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
     }
-    _dataBase->unlock();
 }
 
 auto Connection::handlerSignInRequest() -> void
@@ -129,18 +127,17 @@ auto Connection::handlerSignInRequest() -> void
     Client::RESPONSE_TYPE response;
     User user(loadUserData());
 
-    _dataBase->lock();
-    if (_dataBase->login(user)) {
+    if (_dataBase->login(user))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, 1);
+        sendResponse(response, sizeof(response));
         setClientPos(_dataBase->getUserStreamPos());
         sendString(user.getUsername().c_str(), user.getUsername().size());
         _userData = std::make_unique<User>(user);
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, 1);
+        sendResponse(response, sizeof(response));
     }
-    _dataBase->unlock();
 }
 
 auto Connection::handlerGetMessagesRequest() -> void
@@ -151,30 +148,24 @@ auto Connection::handlerGetMessagesRequest() -> void
 
     User sender(sender_);
     User receiver(receiver_);
+    std::vector<Message> messages;
 
-    _dataBase->lock();
-    if ((receiver.getUsername() == L"common_chat")
-        || _dataBase->isExisting(receiver)) {
+    if (_dataBase->getMessages(receiver.getUsername(), sender.getUsername(), messages))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
         delete[] sender_;
         delete[] receiver_;
         return;
     }
-
-    std::vector<Message> vec =
-            _dataBase->getMessages(receiver.getUsername(), sender.getUsername());
-
-    _dataBase->unlock();
-
-    size_t vecSize = vec.size();
+    size_t vecSize = messages.size();
     if (vecSize != 0)
     {
         sendUnsignedNUM(vecSize);
-        sendMessages(vec);
+        sendMessages(messages);
     } else {
         sendUnsignedNUM(vecSize);
     }
@@ -185,19 +176,17 @@ auto Connection::handlerSendMessageRequest() -> void
 {
     Client::RESPONSE_TYPE response;
 
-    User user(loadString());
-    _dataBase->lock();
-    if (user.getUsername() == L"common_chat"
-        || _dataBase->isExisting(user)) {
+    Message message(loadMessage());
+    //ПРОВЕРИТЬ
+
+    if (_dataBase->sendMessage(message))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(bool));
-        Message message(loadMessage());
-        _dataBase->sendMessage(message);
+        sendResponse(response, sizeof(response));
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
     }
-    _dataBase->unlock();
 }
 
 auto Connection::handlerChPasswordRequest() -> void
@@ -205,11 +194,14 @@ auto Connection::handlerChPasswordRequest() -> void
     Client::RESPONSE_TYPE response;
 
     User user(loadUserData());
-    _dataBase->lock();
-    _dataBase->changeUserData(user, getClientPos());
-    _dataBase->unlock();
-    response = Client::RESPONSE_TYPE::ACCEPTED;
-    sendResponse(response, sizeof(bool));
+
+    if (_dataBase->changeUserData(user, getClientPos())) {
+        response = Client::RESPONSE_TYPE::ACCEPTED;
+        sendResponse(response, sizeof(response));
+    } else {
+        response = Client::RESPONSE_TYPE::REJECTED;
+        sendResponse(response, sizeof(response));
+    }
 }
 
 auto Connection::handlerChLoginRequest() -> void
@@ -217,16 +209,13 @@ auto Connection::handlerChLoginRequest() -> void
     Client::RESPONSE_TYPE response;
     User user(loadUserData());
 
-    _dataBase->lock();
-    if (_dataBase->isExisting(user)) {
+    if (_dataBase->changeUserData(user, getClientPos())) {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(bool));
-        _dataBase->changeUserData(user, getClientPos());
+        sendResponse(response, sizeof(response));
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
     }
-    _dataBase->unlock();
 }
 
 auto Connection::handlerClearChatRequest() -> void
@@ -234,20 +223,15 @@ auto Connection::handlerClearChatRequest() -> void
     Client::RESPONSE_TYPE response;
     User user(loadString());
 
-    _dataBase->lock();
-    if (_dataBase->isExisting(user)) {
+    if (_dataBase->clearChat(_userData->getUsername(), user.getUsername())) {
         response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
     } else {
         response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(bool));
+        sendResponse(response, sizeof(response));
         return;
     }
-    _dataBase->unlock();
 
-    bool ans = static_cast<bool>(loadRequest());
-    if (ans)
-        _dataBase->clearChat(_userData->getUsername(), user.getUsername());
 }
 
 auto Connection::requestHandlerFunc() ->void
@@ -271,7 +255,6 @@ auto Connection::requestHandlerFunc() ->void
             }
         }
     } catch(std::exception const& ex) {
-        _dataBase->unlock();
         std::cout << ex.what();
         showIp();
         _status = Client::CONNECTION_STATUS::DOWN;

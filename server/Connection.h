@@ -19,7 +19,7 @@ private:
     auto setClientPos(std::streampos&)                                                ->void;
 
     auto loadSignedNUM()                                                        const ->long;
-    auto loadString()                                                           const ->wchar_t*;
+    auto loadString()                                                           const ->char*;
     auto loadRequest()                                                          const ->Client::REQUEST_TYPE;
     auto loadUnsignedNUM()                                                      const ->size_t;
     auto loadUserData()                                                         const ->User;
@@ -30,7 +30,7 @@ private:
 
     auto sendUnsignedNUM(size_t)                                                const ->void;
     auto sendSignedNUM(long)                                                    const ->void;
-    auto sendString(wchar_t const*, size_t const)                               const ->void;
+    auto sendString(char const*, size_t const)                                  const ->void;
     auto sendResponse(Client::RESPONSE_TYPE const&, int const)                  const ->void;
     auto sendMessages(std::vector<Message> const&)                              const ->void;
 

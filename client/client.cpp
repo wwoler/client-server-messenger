@@ -2,6 +2,7 @@
 
 int main()
 {
+    setlocale(LC_ALL, "");
     auto& chat =  Chat::get_instance();
 
     try

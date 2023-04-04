@@ -4,21 +4,21 @@
 class User final {
 public:
 	User() = default;
-	User(const std::wstring& login, const std::wstring& pass);
-	User(std::wstring const& login,std::wstring const& pass, std::wstring const& username);
-	User(std::wstring const& username);
+	User(std::string const& login, std::string const& pass);
+	User(std::string const& login, std::string const& pass, std::string const& username);
+	User(std::string const& username);
 	~User() = default;
 
-	auto getLogin() const				           ->std::wstring const&;
-	auto getPass()  const			               ->std::wstring const&;
-	auto getUsername() 	const		               ->std::wstring const&;
+	auto getLogin() const				           ->std::string const&;
+	auto getPass()  const			               ->std::string const&;
+	auto getUsername() 	const		               ->std::string const&;
 
-	auto setLogin(std::wstring const&)             ->void;
-	auto setPass(std::wstring const&)              ->void;
-	auto setUsername(std::wstring const&)          ->void;
+	auto setLogin(std::string const&)              ->void;
+	auto setPass(std::string const&)               ->void;
+	auto setUsername(std::string const&)           ->void;
 
 private:
-	std::wstring _login;
-	std::wstring _pass;
-	std::wstring _username;
+	std::string _login;
+	std::string _pass;
+	std::string _username;
 };

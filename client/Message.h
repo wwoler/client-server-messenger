@@ -1,27 +1,28 @@
 #pragma once
 #include<iostream>
+#include"User.h"
 
 class Message final {
 public:
-    Message() = default;
-    Message(std::wstring const& sender, std::wstring const& receiver, std::wstring const& content, time_t&& time);
-    Message(std::wstring const& sender, std::wstring const& content, time_t&& time);
-    ~Message() = default;
+	Message() = default;
+	Message(std::string const& sender, std::string const& receiver, std::string const& content, time_t const time);
+	Message(std::string const& sender, std::string const& content, time_t const time);
+	~Message() = default;
 
-    auto getSender()    const	->std::wstring const&;
-    auto getReceiver()  const   ->std::wstring const&;
-    auto getContent()  	const   ->std::wstring const&;
-    auto getTime()      const   ->time_t       const&;
+	auto getSender()    const	->std::string const&;
+	auto getReceiver()  const   ->std::string const&;
+	auto getContent()  	const   ->std::string const&;
+	auto getTime()      const   ->time_t      const&;
 
-    auto setSender(std::wstring const&)   ->void;
-    auto setReceiver(std::wstring const&) ->void;
-    auto setContent(std::wstring const&)  ->void;
-    auto setTime(time_t const&)           ->void;
+	auto setSender(std::string const&)   ->void;
+	auto setReceiver(std::string const&) ->void;
+	auto setContent(std::string const&)  ->void;
+	auto setTime(time_t const&)          ->void;
 
 private:
-    std::wstring        _sender;
-    std::wstring        _receiver;
-    std::wstring        _content;
-    time_t              _time;
+	std::string        _sender;
+	std::string        _receiver;
+	std::string        _content;
+	time_t              _time;
 
 };

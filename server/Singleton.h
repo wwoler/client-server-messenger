@@ -13,7 +13,6 @@ public:
 	virtual ~Erase() = default;
 };
 
-
 template <class T>
 class Singleton : private Erase
 {
