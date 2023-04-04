@@ -170,12 +170,13 @@ auto DataBase::clearChat(std::string const& user1, std::string const& user2)  ->
 
 auto DataBase::sendMessage(Message& message)  ->bool
 {
+    User temp(message.getReceiver());
     std::lock_guard<std::mutex> lk(_mutex);
-    if (message.getReceiver() == "common_chat")
+    if (temp.getUsername() == "common_chat")
     {
         _messageStream.open(_path.string() + "Messages_List/common_chat.json", std::ios::app | std::ios::out);
     }
-    else if(!isExisting((User&)message.getReceiver()))
+    else if(isExisting(temp))
     {
         std::string dialog;
         message.getReceiver() > message.getSender() ?

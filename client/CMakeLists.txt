@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
-project(clientt)
+project(client)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(.)
-
-add_executable(clientt
+add_executable(client
         Chat.cpp
         Chat.h
         client.cpp
