@@ -9,10 +9,10 @@ public:
 	Message(std::string const& sender, std::string const& content, time_t const time);
 	~Message() = default;
 
-	auto getSender()    const	->std::string const&;
-	auto getReceiver()  const   ->std::string const&;
-	auto getContent()  	const   ->std::string const&;
-	auto getTime()      const   ->time_t      const&;
+	auto getSender()    const            ->std::string const&;
+	auto getReceiver()  const            ->std::string const&;
+	auto getContent()   const            ->std::string const&;
+	auto getTime()      const            ->time_t      const&;
 
 	auto setSender(std::string const&)   ->void;
 	auto setReceiver(std::string const&) ->void;
@@ -23,6 +23,6 @@ private:
 	std::string        _sender;
 	std::string        _receiver;
 	std::string        _content;
-	time_t              _time;
+	time_t             _time;
 
 };

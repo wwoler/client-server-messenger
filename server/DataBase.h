@@ -16,8 +16,16 @@
 class DataBase : public Singleton<DataBase>
 {
 private:
+    enum class TypeExisting : uint8_t
+    {
+        login,
+        username,
+        login_and_username,
+    };
+
+private:
 	friend class Connection;
-    std::mutex                      _mutex;
+        std::mutex                      _mutex;
 	std::fstream                    _userStream;
 	std::fstream                    _messageStream;
 	std::filesystem::path           _path;
@@ -32,33 +40,29 @@ private:
 
 	auto signUp(User& userID)                                                ->bool;
 
-	auto isExisting(User& userID)                                            ->bool;
+	auto isExisting(User& , TypeExisting,  User* resultData = nullptr)       ->bool;
 
 	auto clearChat(std::string const& user1, std::string const& user2)       ->bool;
 
 	auto getMessages(std::string const& from, std::string const& to,
-                     std::vector<Message>& messages)                         ->bool;
+                     std::vector<Message>& messages)                             ->bool;
 
 	auto sendMessage(Message& message)                                       ->bool;
 
 	auto adjustment()                                                        ->void;
 
-    auto getUserStreamPos()                                                  ->std::streampos&;
+        auto getUserStreamPos()                                                  ->std::streampos&;
 
-    auto changeUserData(User& newData, std::streampos const& pos)            ->bool;
+    	auto changeLogin(User&, std::streampos const&)                           ->bool;
 
-    auto lock()                                                              ->void;
-
-    auto unlock()                                                            ->void;
-
-
+        auto changePassword(User&, std::streampos const&)                        ->void;
 protected:
 	explicit DataBase(std::filesystem::path const&& path = "./base/");
 
 public:
 	~DataBase() override
 	{
-		_userStream.close();
+	    _userStream.close();
         if(_messageStream.is_open())
             _messageStream.close();
 	}

@@ -3,7 +3,7 @@
 User::User(std::string const& login, std::string const& pass):
 	_login(login), _pass(pass) {}
 
-User::User(std::string const& login,std::string const& pass, std::string const& username):
+User::User(std::string const& login, std::string const& pass, std::string const& username):
     _login(login),
     _pass(pass),
     _username(username) {}

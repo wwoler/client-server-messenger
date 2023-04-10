@@ -116,7 +116,9 @@ auto Connection::handlerSignUpRequest() -> void
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
         setClientPos(_dataBase->getUserStreamPos());
-    } else {
+    }
+    else
+    {
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
     }
@@ -134,7 +136,9 @@ auto Connection::handlerSignInRequest() -> void
         setClientPos(_dataBase->getUserStreamPos());
         sendString(user.getUsername().c_str(), user.getUsername().size());
         _userData = std::make_unique<User>(user);
-    } else {
+    }
+    else
+    {
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
     }
@@ -154,7 +158,9 @@ auto Connection::handlerGetMessagesRequest() -> void
     {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
-    } else {
+    }
+    else
+    {
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
         delete[] sender_;
@@ -166,10 +172,12 @@ auto Connection::handlerGetMessagesRequest() -> void
     {
         sendUnsignedNUM(vecSize);
         sendMessages(messages);
-    } else {
+    } else
+    {
         sendUnsignedNUM(vecSize);
     }
-
+    delete[] sender_;
+    delete[] receiver_;
 }
 
 auto Connection::handlerSendMessageRequest() -> void
@@ -177,13 +185,14 @@ auto Connection::handlerSendMessageRequest() -> void
     Client::RESPONSE_TYPE response;
 
     Message message(loadMessage());
-    //ПРОВЕРИТЬ
 
     if (_dataBase->sendMessage(message))
     {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
-    } else {
+    }
+    else
+    {
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
     }
@@ -192,27 +201,29 @@ auto Connection::handlerSendMessageRequest() -> void
 auto Connection::handlerChPasswordRequest() -> void
 {
     Client::RESPONSE_TYPE response;
+    std::string newPassword(loadString());
 
-    User user(loadUserData());
-
-    if (_dataBase->changeUserData(user, getClientPos())) {
-        response = Client::RESPONSE_TYPE::ACCEPTED;
-        sendResponse(response, sizeof(response));
-    } else {
-        response = Client::RESPONSE_TYPE::REJECTED;
-        sendResponse(response, sizeof(response));
-    }
+    _userData->setPass(newPassword);
+    _dataBase->changePassword(*_userData, getClientPos());
+    response = Client::RESPONSE_TYPE::ACCEPTED;
+    sendResponse(response, sizeof(response));
 }
 
 auto Connection::handlerChLoginRequest() -> void
 {
     Client::RESPONSE_TYPE response;
-    User user(loadUserData());
+    std::string newLogin(loadString());
+    std::string oldLogin = _userData->getLogin();
+    _userData->setLogin(newLogin);
 
-    if (_dataBase->changeUserData(user, getClientPos())) {
+    if (_dataBase->changeLogin(*_userData, getClientPos()))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
-    } else {
+    }
+    else
+    {
+        _userData->setLogin(oldLogin);
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
     }
@@ -222,22 +233,26 @@ auto Connection::handlerClearChatRequest() -> void
 {
     Client::RESPONSE_TYPE response;
     User user(loadString());
+    bool confirm(static_cast<bool>(loadRequest()));
+    if(!confirm) return;
 
     if (_dataBase->clearChat(_userData->getUsername(), user.getUsername())) {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
-    } else {
+    }
+    else
+    {
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
         return;
     }
-
 }
 
 auto Connection::requestHandlerFunc() ->void
 {
     try {
-        while (true) {
+        while (true)
+        {
             auto request = loadRequest();
 
             switch (request) {

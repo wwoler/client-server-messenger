@@ -25,14 +25,13 @@ DataBase::DataBase(std::filesystem::path const&& path) :
         _userStream.open(_path.string() + "users.json",
                          std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
     }
-
     _messageStream.close();
 }
 
 auto DataBase::adjustment()  -> void
 {
     auto pos = _userStream.tellp();
-    _userStream.seekp(pos);           //טח פאיכא
+    _userStream.seekp(pos);
     auto count = 0;
     auto ch = _userStream.get();
     while (ch != '\n')
@@ -41,7 +40,7 @@ auto DataBase::adjustment()  -> void
         ch = _userStream.get();
     }
 
-    _userStream.seekg(pos);          // ג פאיכ
+    _userStream.seekg(pos);
     for (int i = 0; i < count; ++i)
     {
         _userStream.put(' ');
@@ -89,27 +88,25 @@ auto DataBase::from_json(Message& mess)  ->void
 
 auto DataBase::login(User& userID)  ->bool
 {
-    std::string buff = userID.getPass();
+    std::string buffPassword = userID.getPass();
+    std::unique_ptr<User> result(new User());
 
     std::lock_guard<std::mutex> lk(_mutex);
-    if (!isExisting(userID) || userID.getPass() != buff)
+    if (isExisting(userID, TypeExisting::login, result.get()) && userID.getPass() == buffPassword)
     {
-        return false;
+        userID.setUsername(result->getUsername());
+        return true;
     }
-    return true;
+    return false;
 }
-
 
 auto DataBase::signUp(User& userID)  ->bool
 {
     std::lock_guard<std::mutex> lk(_mutex);
-    if (isExisting(userID))
-    {
+    if (isExisting(userID, TypeExisting::login_and_username))
         return false;
-    }
-    _userStream.seekp(0u, std::ios::end);
 
-    /*219 - לאךסטלאכםי נאחלונ הכ מבתוךעא ג פאיכו*/
+    _userStream.seekp(0u, std::ios::end);
 
     _userStream << std::setw(219) << '\n';
 
@@ -120,8 +117,7 @@ auto DataBase::signUp(User& userID)  ->bool
     return true;
 }
 
-
-auto DataBase::isExisting(User& userID)  ->bool
+auto DataBase::isExisting(User& userID, TypeExisting type, User* resultData)  ->bool
 {
     _userStream.seekp(0u, std::ios::beg);
 
@@ -135,60 +131,71 @@ auto DataBase::isExisting(User& userID)  ->bool
         _currentUserPos = _userStream.tellp();
 
         from_json(buff);
-
-        if (buff.getUsername() == userID.getUsername()
-            || buff.getLogin() == userID.getLogin())
+        switch(type)
         {
-            userID.setUsername(buff.getUsername());
-            userID.setPass(buff.getPass());
-            return true;
+            case TypeExisting::login:
+                if (userID.getLogin() == buff.getLogin())
+                {
+                    if(resultData)
+                    {
+                        resultData->setPass(buff.getPass());
+                        resultData->setUsername(buff.getUsername());
+                    }
+                    return true;
+                }
+                break;
+            case TypeExisting::username:
+                if (userID.getUsername() == buff.getUsername())
+                {
+                    return true;
+                }
+                break;
+            case TypeExisting::login_and_username:
+                if (userID.getUsername() == buff.getUsername() || userID.getLogin() == buff.getLogin())
+                    return true;
+                break;
         }
 
         while (_userStream.get() != '\n');
         _userStream.get();
     }
-
     _userStream.clear();
     return false;
 }
 
 auto DataBase::clearChat(std::string const& user1, std::string const& user2)  -> bool
 {
+    User buffUser(user2);
     std::lock_guard<std::mutex> lk(_mutex);
-    if(!isExisting((User&)user2)) return false;
+    if(!isExisting(buffUser, TypeExisting::username)) return false;
     std::string dialog;
     user1 > user2 ?
-    dialog.assign(user1 + user2) :
+    dialog.assign(user1 + user2):
     dialog.assign(user2 + user1);
 
-    std::string dialog_(dialog.begin(), dialog.end());
-
-    _messageStream.open(_path.string() + "Messages_List/" + dialog_ + ".json", std::ios::out | std::ios::trunc);
+    _messageStream.open(_path.string() + "Messages_List/" + dialog + ".json", std::ios::out | std::ios::trunc);
     _messageStream.close();
     return true;
 }
 
 auto DataBase::sendMessage(Message& message)  ->bool
 {
-    User temp(message.getReceiver());
+    User buffUser(message.getReceiver());
     std::lock_guard<std::mutex> lk(_mutex);
-    if (temp.getUsername() == "common_chat")
+    if (buffUser.getUsername() == "common_chat")
     {
         _messageStream.open(_path.string() + "Messages_List/common_chat.json", std::ios::app | std::ios::out);
     }
-    else if(isExisting(temp))
+    else if(isExisting(buffUser, TypeExisting::username))
     {
         std::string dialog;
         message.getReceiver() > message.getSender() ?
-        dialog.assign(message.getReceiver() + message.getSender()) :
+        dialog.assign(message.getReceiver() + message.getSender()):
         dialog.assign(message.getSender() + message.getReceiver());
 
-        std::string dialog_(dialog.begin(), dialog.end());
-
-        _messageStream.open(_path.string() + "Messages_List/" + dialog_ + ".json", std::ios::app | std::ios::out);
+        _messageStream.open(_path.string() + "Messages_List/" + dialog + ".json", std::ios::app | std::ios::out);
     }
     else return false;
-
 
     to_json(message);
 
@@ -199,42 +206,38 @@ auto DataBase::sendMessage(Message& message)  ->bool
 
 auto DataBase::getMessages(std::string const& from, std::string const& to, std::vector<Message>& messages)  -> bool
 {
+    User buffUser(from);
     std::lock_guard<std::mutex> lk(_mutex);
     if (from == "common_chat")
     {
-        _messageStream.open(_path.string()+ "Messages_List/common_chat.json", std::ios::out | std::ios::in);
+        _messageStream.open(_path.string() + "Messages_List/common_chat.json", std::ios::out | std::ios::in);
     }
-    else if(isExisting((User&)from))
+    else if(isExisting(buffUser, TypeExisting::username))
     {
         std::string dialog;
         to > from ?
         dialog.assign(to + from) :
         dialog.assign(from + to);
 
-        std::string dialog_(dialog.begin(), dialog.end());
-
-        _messageStream.open(_path.string() + "Messages_List/" + dialog_ + ".json", std::ios::out | std::ios::in);
+        _messageStream.open(_path.string() + "Messages_List/" + dialog + ".json", std::ios::out | std::ios::in);
     }
     else return false;
 
     _messageStream.get();
 
     messages.reserve(20);
-    Message buff;
-
+    Message buffMessage;
     while (_messageStream.good())
     {
         _messageStream.unget();
 
-        from_json(buff);
-        messages.push_back(buff);
+        from_json(buffMessage);
+        messages.push_back(buffMessage);
 
         _messageStream.get();
     }
-
     _messageStream.close();
     return true;
-
 }
 
 auto DataBase::getUserStreamPos() -> std::streampos&
@@ -242,11 +245,12 @@ auto DataBase::getUserStreamPos() -> std::streampos&
     return _currentUserPos;
 }
 
-auto DataBase::changeUserData(User& newData, std::streampos const& pos) ->bool
+
+auto DataBase::changeLogin(User& newData, std::streampos const& pos) ->bool
 {
     std::lock_guard<std::mutex> lk(_mutex);
 
-    if(isExisting(newData)) return false;
+    if(isExisting(newData, TypeExisting::login)) return false;
 
     _userStream.seekp(pos);
 
@@ -255,6 +259,17 @@ auto DataBase::changeUserData(User& newData, std::streampos const& pos) ->bool
     adjustment();
 
     return true;
+}
+
+auto DataBase::changePassword(User& newData, std::streampos const& pos) -> void
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+
+    _userStream.seekp(pos);
+
+    to_json(newData);
+
+    adjustment();
 }
 
 

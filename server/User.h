@@ -9,9 +9,9 @@ public:
 	User(std::string const& username);
 	~User() = default;
 
-	auto getLogin() const				           ->std::string const&;
-	auto getPass()  const			               ->std::string const&;
-	auto getUsername() 	const		               ->std::string const&;
+	auto getLogin()         const		       ->std::string const&;
+	auto getPass() 	        const                  ->std::string const&;
+	auto getUsername() 	const                  ->std::string const&;
 
 	auto setLogin(std::string const&)              ->void;
 	auto setPass(std::string const&)               ->void;

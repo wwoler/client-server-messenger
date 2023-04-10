@@ -320,7 +320,7 @@ auto Chat::getMessages()  ->void
     {
         SetConsoleCursor(c);
         std::cout << message.getSender()
-                   << L' ' << time_to_string(message.getTime());
+                   << ' ' << time_to_string(message.getTime());
         c.Y += 1;
         SetConsoleCursor(c);
         std::cout << message.getContent();
@@ -385,8 +385,6 @@ auto Chat::exit()  ->void
     throw CloseChat{};
 }
 
-
-
 auto Chat::clear_chat()  ->void
 {
     REQUEST_TYPE request = REQUEST_TYPE::CLEAR_CHAT;
@@ -406,14 +404,6 @@ auto Chat::clear_chat()  ->void
 
     sendString(username);
 
-    if (loadResponse() == RESPONSE_TYPE::REJECTED)
-    {
-        cls
-        setConsoleColor(Color::RED);
-        std::cout << "User/chat isn't existing\n\n";
-        return;
-    }
-
     bool done = false;
     char ch;
     while (!done)
@@ -425,12 +415,12 @@ auto Chat::clear_chat()  ->void
             case'y':
             case'Y':
                 done = true;
-                write(_socket, &done, sizeof(bool));
+                write(_socket, &done, sizeof(done));
                 break;
             case'n':
             case'N':
                 done = false;
-                write(_socket, &done, sizeof(bool));
+                write(_socket, &done, sizeof(done));
                 std::cout << std::endl;
                 return;
             default:
@@ -438,6 +428,15 @@ auto Chat::clear_chat()  ->void
                 break;
         }
     }
+
+    if (loadResponse() == RESPONSE_TYPE::REJECTED)
+    {
+        cls
+        setConsoleColor(Color::RED);
+        std::cout << "User/chat isn't existing\n\n";
+        return;
+    }
+
     cls
     setConsoleColor(Color::GREEN);
     std::cout << "Chat has been cleared" << std::endl;
@@ -463,12 +462,12 @@ auto Chat::changePassword()  ->void
         return;
     }
 
-    _currentUser->setPass(newPassword);
-    sendUserData(*_currentUser);
+    sendString(newPassword);
 
     cls
     if(loadResponse() == RESPONSE_TYPE::ACCEPTED)
     {
+        _currentUser->setPass(newPassword);
         setConsoleColor(Color::GREEN);
         std::cout << "Password has been changed" << std::endl;
         std::cout << std::endl;
@@ -494,9 +493,10 @@ auto Chat::changeLogin()  ->void
         return;
     }
 
-    User tempUser(*_currentUser);
+    /*User tempUser(*_currentUser);
     tempUser.setLogin(newLogin);
-    sendUserData(tempUser);
+    sendUserData(tempUser);*/
+    sendString(newLogin);
 
     if (loadResponse() == RESPONSE_TYPE::REJECTED)
     {
