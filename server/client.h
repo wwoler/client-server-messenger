@@ -18,27 +18,27 @@ class Client final
 public:
     enum class CONNECTION_STATUS : uint8_t
     {
-        NON          = 0,
-        UP           = 1,
-        DOWN         = 2
+        NON,
+        UP,
+        DOWN
     };
 
     enum class REQUEST_TYPE : uint8_t
     {
-        EXIT         = 0,
-        SIGN_UP      = 1,
-        SIGN_IN      = 2,
-        GET_MESSAGES = 3,
-        SEND_MESSAGE = 4,
-        CH_PASSWORD  = 5,
-        CH_LOGIN     = 6,
-        CLEAR_CHAT   = 7
+        EXIT,
+        SIGN_UP,
+        SIGN_IN,
+        GET_MESSAGES,
+        SEND_MESSAGE,
+        CH_PASSWORD,
+        CH_LOGIN,
+        CLEAR_CHAT
     };
 
     enum class RESPONSE_TYPE : uint8_t
     {
-        REJECTED = 0,
-        ACCEPTED = 1
+        REJECTED,
+        ACCEPTED
     };
 
 public:
@@ -47,9 +47,10 @@ public:
     ~Client();
 
 private:
-    int                 _socket;
-    sockaddr_in         _address;
-    std::streampos      _userPos;
+    int                     _socket;
+    sockaddr_in             _address;
+    std::streampos          _userPos;
+    std::unique_ptr<User>   _userData;
 
 public:
     auto loadRequest()                                  const ->REQUEST_TYPE;
@@ -67,7 +68,9 @@ public:
     auto sendMessages(std::vector<Message> const&)      const ->void;
     auto disconnect()                                   const ->void;
 
+    auto getUserData()                                        ->User*;
     auto getPos()                                       const ->std::streampos const&;
+    auto setUserData(User* data = nullptr)                    ->void;
     auto setPos(std::streampos const&)                        ->void;
     auto showIp()                                       const ->void;
 

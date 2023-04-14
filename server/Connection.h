@@ -10,7 +10,6 @@ public:
     Connection(Client* client, DataBase* db);
     ~Connection() = default;
 private:
-    std::unique_ptr<User>        _userData;
     std::unique_ptr<Client>      _client;
     std::thread                  _thread;
     DataBase*                    _dataBase;

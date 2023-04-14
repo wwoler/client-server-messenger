@@ -84,13 +84,6 @@ auto Connection::sendMessages(std::vector<Message> const& messages) const ->void
     _client->sendMessages(messages);
 }
 
-auto Connection::handlerExitRequest() -> void
-{
-    std::cout << "Client disconnected ";
-    showIp();
-    _status = Client::CONNECTION_STATUS::DOWN;
-}
-
 auto Connection::getClientPos() const ->std::streampos const&
 {
     return _client->getPos();
@@ -104,6 +97,14 @@ auto Connection::setClientPos(std::streampos& pos) ->void
 auto Connection::getConnectionStatus() const ->Client::CONNECTION_STATUS
 {
     return _status;
+}
+
+auto Connection::handlerExitRequest() -> void
+{
+    std::cout << "Client disconnected ";
+    showIp();
+    _status = Client::CONNECTION_STATUS::DOWN;
+    _client->setUserData(nullptr);
 }
 
 auto Connection::handlerSignUpRequest() -> void
@@ -135,7 +136,7 @@ auto Connection::handlerSignInRequest() -> void
         sendResponse(response, sizeof(response));
         setClientPos(_dataBase->getUserStreamPos());
         sendString(user.getUsername().c_str(), user.getUsername().size());
-        _userData = std::make_unique<User>(user);
+        _client->setUserData(new User(user));
     }
     else
     {
@@ -203,8 +204,8 @@ auto Connection::handlerChPasswordRequest() -> void
     Client::RESPONSE_TYPE response;
     std::string newPassword(loadString());
 
-    _userData->setPass(newPassword);
-    _dataBase->changePassword(*_userData, getClientPos());
+    _client->getUserData()->setPass(newPassword);
+    _dataBase->changePassword(*_client->getUserData(), getClientPos());
     response = Client::RESPONSE_TYPE::ACCEPTED;
     sendResponse(response, sizeof(response));
 }
@@ -213,17 +214,17 @@ auto Connection::handlerChLoginRequest() -> void
 {
     Client::RESPONSE_TYPE response;
     std::string newLogin(loadString());
-    std::string oldLogin = _userData->getLogin();
-    _userData->setLogin(newLogin);
+    std::string oldLogin = _client->getUserData()->getLogin();
+    _client->getUserData()->setLogin(newLogin);
 
-    if (_dataBase->changeLogin(*_userData, getClientPos()))
+    if (_dataBase->changeLogin(*_client->getUserData(), getClientPos()))
     {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
     }
     else
     {
-        _userData->setLogin(oldLogin);
+        _client->getUserData()->setLogin(oldLogin);
         response = Client::RESPONSE_TYPE::REJECTED;
         sendResponse(response, sizeof(response));
     }
@@ -236,7 +237,8 @@ auto Connection::handlerClearChatRequest() -> void
     bool confirm(static_cast<bool>(loadRequest()));
     if(!confirm) return;
 
-    if (_dataBase->clearChat(_userData->getUsername(), user.getUsername())) {
+    if (_dataBase->clearChat(_client->getUserData()->getUsername(), user.getUsername()))
+    {
         response = Client::RESPONSE_TYPE::ACCEPTED;
         sendResponse(response, sizeof(response));
     }
@@ -269,7 +271,8 @@ auto Connection::requestHandlerFunc() ->void
                     break;
             }
         }
-    } catch(std::exception const& ex) {
+    } catch(std::exception const& ex)
+    {
         std::cout << ex.what();
         showIp();
         _status = Client::CONNECTION_STATUS::DOWN;

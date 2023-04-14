@@ -421,7 +421,7 @@ auto Chat::clear_chat()  ->void
             case'N':
                 done = false;
                 write(_socket, &done, sizeof(done));
-                std::cout << std::endl;
+                std::cout << "Chat clearing has been canceled" << std::endl;
                 return;
             default:
                 flush_input_buffer();

@@ -125,6 +125,16 @@ auto Client::sendMessages(std::vector<Message> const& messages) const ->void
 }
 
 
+auto Client::getUserData() ->User*
+{
+    return _userData.get();
+}
+
+auto Client::setUserData(User* data) -> void
+{
+    _userData.reset(data);
+}
+
 auto Client::getPos() const ->std::streampos const&
 {
     return _userPos;
@@ -152,6 +162,8 @@ auto Client::showIp() const -> void
               << static_cast<int>(bytes[2]) << '.'
               << static_cast<int>(bytes[3]) << std::endl;
 }
+
+
 
 
 
